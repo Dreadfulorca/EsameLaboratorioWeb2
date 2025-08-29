@@ -1,0 +1,221 @@
+﻿@page "/parking"
+@attribute [AllowAnonymous]
+@attribute [Authorize(Policy = "NotAdmin")]
+
+@inject AuthenticationStateProvider AuthStateProv
+@inject NavigationManager Nav
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateProv.GetAuthenticationStateAsync()).User;
+        if (user.IsInRole("Administrator"))
+            Nav.NavigateTo("/", true);
+    }
+}
+
+<style>
+    /* Stile per il contenitore principale della sezione parking */
+    .parking-section-row {
+        display: flex; /* Attiva Flexbox */
+        justify-content: space-between; /* Spinge i figli ai lati opposti */
+        align-items: center; /* Allinea verticalmente gli elementi al centro */
+        flex-wrap: wrap; /* Permette agli elementi di andare a capo su schermi piccoli */
+    }
+
+    /* Classe per la colonna del testo */
+    .parking-text-content {
+        padding-right: 2rem;
+    }
+
+    /* Classe per la colonna dell'immagine */
+    .parking-image-content {
+        padding-left: 2rem;
+    }
+
+    /* Media query per schermi più piccoli (es. tablet e smartphone) */
+    @@media (max-width: 991.98px) {
+        .parking-section-row {
+            justify-content: center; /* Centra gli elementi quando sono impilati */
+            text-align: center;
+        }
+
+        .parking-text-content {
+            padding-right: 0;
+            margin-bottom: 2rem;
+        }
+
+        .parking-image-content {
+            padding-left: 0;
+        }
+
+        .breadcrumb {
+            justify-content: center;
+        }
+
+        ol.ps-3 {
+            display: inline-block;
+            text-align: left;
+        }
+    }
+
+    /* --- Stili per la Modale (Lightbox) --- */
+
+    /* Overlay scuro che copre tutta la pagina */
+    .modal-overlay {
+        position: fixed; /* Rimane fisso durante lo scroll */
+        top: 0;
+        left: 0;
+        width: 100vw; /* Larghezza totale della viewport */
+        height: 100vh; /* Altezza totale della viewport */
+        background-color: rgba(0, 0, 0, 0.85); /* Sfondo nero con opacità */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1050; /* Assicura che sia sopra tutto il resto */
+        cursor: pointer; /* Indica che si può cliccare per chiudere */
+    }
+
+    /* Contenitore per l'immagine del volantino */
+    .modal-content {
+        position: relative;
+        max-width: 30vw; /* Larghezza massima dell'immagine */
+        max-height: 40vh; /* Altezza massima dell'immagine */
+        cursor: default; /* Cursore standard sull'immagine */
+        /* --- MODIFICHE PER CENTRARE L'IMMAGINE --- */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            border-radius: 8px; /* Angoli arrotondati per l'immagine */
+        }
+
+    /* --- NUOVI STILI PER IL PULSANTE DI CHIUSURA --- */
+    .close-button {
+        position: fixed; /* Posizione fissa rispetto allo schermo */
+        top: 20px;
+        right: 30px;
+        color: #fff; /* Colore bianco */
+        font-size: 2.5rem; /* Dimensione del carattere aumentata */
+        font-weight: 300; /* Carattere più sottile */
+        cursor: pointer;
+        transition: transform 0.2s ease, color 0.2s ease;
+        z-index: 1060; /* Deve essere sopra l'overlay */
+        line-height: 1;
+    }
+
+        .close-button:hover {
+            transform: scale(1.2); /* Leggero ingrandimento al passaggio del mouse */
+            color: #ccc; /* Cambia colore al passaggio del mouse */
+        }
+
+</style>
+
+<div class="container my-5">
+
+
+    <div class="row parking-section-row">
+        <!-- Colonna per il testo -->
+        <div class="col-lg-6 parking-text-content">
+            <h1 class="display-4 mb-4">LA SOSTA È SERVITA!</h1>
+            <h5 class="mb-3">Pranzo e cena al Ristorante Del Sole non sono mai stati così comodi!</h5>
+            <p class="lead">
+                Dal <strong>1 dicembre 2024</strong>, puoi approfittare del <em>lunch</em> o <em>dinner pass</em>
+                per parcheggiare in centro a soli <strong>3€</strong> nelle fasce orarie indicate
+                (escluso Parcheggio Mercato Coperto).
+            </p>
+
+            <h6 class="mt-4">Come funziona?</h6>
+            <ol class="ps-3">
+                <li>Richiedi il pass per tariffa agevolata presso le attività aderenti</li>
+                <li>Parcheggia comodamente in uno degli spazi convenzionati</li>
+                <li>Gusta il meglio di Perugia!</li>
+            </ol>
+
+            <p class="mt-4">
+                Un pranzo o una cena speciale in centro? <strong>Ti aspettiamo</strong>
+            </p>
+
+            <!-- Pulsante modificato per aprire la modale -->
+            <button @onclick="OpenModal" class="btn btn-outline-dark mt-3">
+                — VISUALIZZA VOLANTINO
+            </button>
+        </div>
+
+        <!-- Colonna per l'immagine -->
+        <div class="col-lg-5 parking-image-content">
+            <img src="images/pexels-abdus-salam-1835604653-28587332.jpg" alt="Parcheggio convenzionato" class="img-fluid rounded" />
+        </div>
+    </div>
+</div>
+
+<!-- Struttura della modale (visibile solo quando isModalVisible è true) -->
+@if (isModalVisible)
+{
+    <!-- Cliccare sull'overlay chiude la modale -->
+    <div class="modal-overlay" @onclick="CloseModal">
+        <!-- Il click sulla X non propaga e chiude -->
+        <span class="close-button" @onclick:stopPropagation="true" @onclick="CloseModal">&times;</span>
+
+        <!-- Il click sul contenuto NON chiude -->
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <img src="images/parcheggio-ristorante-del-sole.jpg" alt="Volantino Promozionale" />
+        </div>
+    </div>
+}
+
+
+<div class="menuHomefine2">
+</div>
+
+<footer>
+    <h2> SCOPRI LE NOSTRE PROPOSTE!</h2>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h3>link utili</h3>
+            <NavLink href="menu">Menu</NavLink><br />
+            <a href="login">Prenota un Tavolo</a><br />
+            <a href="le-mie-prenotazioni">Le Tue Prenotazioni</a><br />
+        </div>
+        <div class="footer-box">
+            <h3>Contatti</h3>
+            <p>Telefono: +39 075 573 5031</p>
+            <p>Cellulare: +39 335 1534567</p>
+            <p>Email: ristorante@ristorantesole.com</p>
+        </div>
+        <div class="footer-box">
+            <h3>Orari</h3>
+            <p>Martedì - Domenica 12.30 - 14.30; 19.30 - 22.30</p>
+            <p>Lunedì: Chiuso</p>
+        </div>
+        <div class="footer-box">
+            <h3>Dove Siamo</h3>
+            <p> Via della Rupe, 1 - 06121, Perugia (PG)</p>
+            <p> Centro Storico di Perugia</p>
+            <p>06132 Perugia (PG) </p>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // Variabile booleana per controllare la visibilità della modale
+    private bool isModalVisible = false;
+
+    // Metodo per mostrare la modale
+    private void OpenModal()
+    {
+        isModalVisible = true;
+    }
+
+    // Metodo per nascondere la modale
+    private void CloseModal()
+    {
+        isModalVisible = false;
+    }
+}

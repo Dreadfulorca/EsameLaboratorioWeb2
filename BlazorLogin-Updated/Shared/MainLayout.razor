@@ -1,0 +1,97 @@
+@using BlazorServerAuthenticationAndAuthorization.Authentication
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+
+<PageTitle>Ristorante del Sole</PageTitle>
+
+<!-- Sfondo dinamico -->
+<div class="hero-background"></div>
+
+<!-- Navbar -->
+<header class="main-navbar">
+    <div class="logo">
+        <img src="images/l.png" alt="Logo" id="l" />
+        <span class="brand"></span>
+    </div>
+
+    <nav class="nav-links">
+        <NavLink href="/" class="nav-link" ActiveClass="active">Home</NavLink>
+        <!-- MENU sempre visibile -->
+        <AuthorizeView Policy="NotAdmin">
+            <Authorized>
+                <NavLink href="menu" class="nav-link" ActiveClass="active">Menu</NavLink>
+                <NavLink href="parking" class="nav-link" ActiveClass="active">Parking</NavLink>
+            </Authorized>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <NavLink href="gestioneUtenti" class="nav-link">Gestione Utenti</NavLink>
+                <NavLink href="lista-prenotazioni" class="nav-link">Lista Prenotazioni</NavLink>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="User">
+            <Authorized>
+                <NavLink href="prenotazione" class="nav-link">Prenotazione</NavLink>
+                <NavLink href="le-mie-prenotazioni" class="nav-link">Le mie prenotazioni</NavLink>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+
+    <div class="auth-links">
+        <AuthorizeView>
+            <Authorized>
+                <a @onclick="Logout" href="javascript:void(0)">Logout</a>
+            </Authorized>
+            <NotAuthorized>
+                <NavLink href="/login" ActiveClass="active" class="nav-link">Prenota</NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</header>
+
+<!-- Contenuto centrale -->
+<section class="hero-content">
+    <h1>Benvenuto al Ristorante del Sole</h1>
+    <p>Tradizione, gusto e relax.</p>
+</section>
+
+<!-- Contenuto dinamico -->
+<main>
+    <article class="content px-4">
+        @Body
+    </article>
+</main>
+
+@code {
+    private async Task Logout()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+        navManager.NavigateTo("/", true);
+    }
+}
+
+<script>
+    const heroImages = [
+        '/images/f1m.png',
+        '/images/f2m.png',
+        '/images/f3.jpg'
+    ];
+
+    let currentHero = 0;
+
+    function updateHeroBackground() {
+        const bg = document.querySelector('.hero-background');
+        if (bg) {
+            bg.style.backgroundImage = `url('${heroImages[currentHero]}')`;
+            currentHero = (currentHero + 1) % heroImages.length;
+        }
+    }
+
+    setTimeout(() => {
+        updateHeroBackground();
+        setInterval(updateHeroBackground, 5000);
+    }, 100);
+</script>

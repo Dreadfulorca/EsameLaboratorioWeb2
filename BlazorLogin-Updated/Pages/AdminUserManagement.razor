@@ -1,0 +1,83 @@
+﻿@page "/gestioneUtenti"
+@attribute [Authorize(Roles = "Administrator")]
+
+@using BlazorServerAuthenticationAndAuthorization.Authentication
+@inject UserAccountService userAccountService
+@inject NavigationManager navManager
+
+<h3>Gestione Utenti</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Ruolo</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in users)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Role</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.Id)">Elimina</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<h4>Aggiungi nuovo utente</h4>
+<div class="mb-3">
+    <label>Username</label>
+    <input class="form-control" @bind="newUsername" />
+</div>
+<div class="mb-3">
+    <label>Password</label>
+    <input type="password" class="form-control" @bind="newPassword" />
+</div>
+<div class="mb-3">
+    <label>Ruolo</label>
+    <select class="form-control" @bind="newRole">
+        <option value="User">User</option>
+        <option value="Administrator">Administrator</option>
+    </select>
+</div>
+<button class="btn btn-success" @onclick="AddUser">Aggiungi</button>
+
+@code {
+    private List<UserAccount> users;
+    private string newUsername;
+    private string newPassword;
+    private string newRole = "User";
+
+    protected override void OnInitialized()
+    {
+        LoadUsers();
+    }
+
+    private void LoadUsers()
+    {
+        users = userAccountService.GetAllUsers();
+    }
+
+    private void AddUser()
+    {
+        if (!userAccountService.UserExists(newUsername))
+        {
+            userAccountService.AddUser(newUsername, newPassword, newRole);
+            newUsername = newPassword = "";
+            LoadUsers();
+        }
+    }
+
+    private void DeleteUser(int id)
+    {
+        userAccountService.DeleteUser(id);
+        LoadUsers();
+    }
+}

@@ -1,0 +1,99 @@
+﻿@page "/"
+@inject IJSRuntime js
+
+<PageTitle>Index</PageTitle>
+
+
+<div class="menu-hero">
+    <div class="hero-image">
+        <img src="images/vista.jpg" alt="Il nostro menù" />
+    </div>
+    <div class="hero-text">
+        <h1>Il Ristorante</h1>
+        <p>
+            Benvenuti al Ristorante del Sole, il luogo dove l’arte culinaria si fonde con la storia e la tradizione,
+            offrendo un’esperienza gastronomica che risveglia i sensi e nutre l’anima.
+            Lasciatevi trasportare in un viaggio gastronomico unico, dove ogni creazione riflette l’incontro
+            tra tradizione e innovazione, ispirato dai luoghi più affascinanti del mondo
+            Ciò che ci rende unici è l’impegno costante nella ricerca delle materie prime, selezionate con cura
+            e attenzione alla freschezza e alla provenienza. Diamo priorità alle eccellenze del nostro territorio,
+            valorizzando i prodotti locali e sostenendo le tradizioni agricole e culinarie della nostra regione.
+        </p>
+    </div>
+</div>
+<div class="menuHomefine2">
+</div>
+<div class="menu-hero">
+    <div class="hero-image">
+        <img src="images/living-cafe-aperitivo-ristorante-del-sole.jpg" alt="Il nostro menù" />
+    </div>
+    <div class="hero-text">
+        <h1>LIVING CAFE</h1>
+        <p>
+            Il Living Café del Ristorante del Sole è uno spazio vibrante e dinamico, pensato per sorprendere e
+            deliziare i nostri ospiti con una vista mozzafiato sulla città di Perugia e sulla valle circostante,
+            che si estende fino ad Assisi.
+            A partire dalle ore 19:00, il Living Café si trasforma in un’oasi per gli amanti dell’aperitivo.
+            Il nostro menu offre una varietà di stuzzichini, che includono prelibatezze fritte o taglieri con i
+            migliori affettati del territorio. La carta dei beverage presenta una selezione di cocktail classici
+            e reinterpretati, preparati con maestria dal nostro barista. .
+        </p>
+    </div>
+</div>
+<div class="menuHomefine2">
+</div>
+
+<div class="menu-hero">
+    <div class="hero-image">
+        <img src="images/cantina.jpg" alt="Il nostro menù" />
+    </div>
+    <div class="hero-text">
+        <h1>CANTINA</h1>
+        <p>
+            Nella cantina di Ristorante del Sole troverete una varietà di vini che spazia dai rinomati nomi delle grandi cantine
+            agli affascinanti tesori provenienti da produttori più piccoli e artigianali. La nostra missione è offrire ai
+            clienti un’esperienza enologica completa e diversificata, in grado di soddisfare ogni gusto e preferenza.
+            Per coloro che amano le bollicine, abbiamo selezionato con cura alcuni dei più pregiati marchi di Champagne,
+            l’accompagnamento perfetto per celebrare le occasioni speciali con stile e raffinatezza.
+        </p>
+    </div>
+</div>
+<div class="menuHomefine2">
+</div>
+
+<footer>
+    <h2> SCOPRI LE NOSTRE PROPOSTE!</h2>
+
+    <div class="footer-container">
+        <div class="footer-box">
+            <h3>link utili</h3>
+            <NavLink href="menu">Menu</NavLink><br />
+            <a href="login">Prenota un Tavolo</a><br />
+            <a href="le-mie-prenotazioni">Le Tue Prenotazioni</a><br />
+        </div>
+        <div class="footer-box">
+            <h3>Contatti</h3>
+            <p>Telefono: +39 075 573 5031</p>
+            <p>Cellulare: +39 335 1534567</p>
+            <p>Email: ristorante@ristorantesole.com</p>
+        </div>
+        <div class="footer-box">
+            <h3>Orari</h3>
+            <p>Martedì - Domenica 12.30 - 14.30; 19.30 - 22.30</p>
+            <p>Lunedì: Chiuso</p>
+        </div>
+        <div class="footer-box">
+            <h3>Dove Siamo</h3>
+            <p> Via della Rupe, 1 - 06121, Perugia (PG)</p>
+            <p> Centro Storico di Perugia</p>
+            <p>06132 Perugia (PG) </p>
+        </div>
+    </div>
+</footer>
+
+
+@code{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+}

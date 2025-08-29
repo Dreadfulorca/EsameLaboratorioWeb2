@@ -1,0 +1,36 @@
+﻿@page "/register"
+@using BlazorServerAuthenticationAndAuthorization.Authentication
+@inject UserAccountService userAccountService
+@inject NavigationManager navManager
+@inject IJSRuntime js
+
+<h3>Registrazione</h3>
+
+<div class="mb-3">
+    <label>Username</label>
+    <input @bind="userName" class="form-control" />
+</div>
+<div class="mb-3">
+    <label>Password</label>
+    <input @bind="password" type="password" class="form-control" />
+</div>
+<button class="btn btn-success" @onclick="RegisterUser">Registrati</button>
+
+@code {
+    private string userName;
+    private string password;
+    private string role = "User"; // Impostato fisso
+
+    private async Task RegisterUser()
+    {
+        if (userAccountService.UserExists(userName))
+        {
+            await js.InvokeVoidAsync("alert", "Utente già esistente.");
+            return;
+        }
+
+        userAccountService.AddUser(userName, password, role);
+        await js.InvokeVoidAsync("alert", "Registrazione completata.");
+        navManager.NavigateTo("/login");
+    }
+}

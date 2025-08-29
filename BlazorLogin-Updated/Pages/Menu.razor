@@ -1,0 +1,230 @@
+﻿@page "/menu"
+@inject IJSRuntime JSRuntime
+@attribute [AllowAnonymous]
+
+@inject AuthenticationStateProvider AuthStateProv
+@inject NavigationManager Nav
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateProv.GetAuthenticationStateAsync()).User;
+        if (user.IsInRole("Administrator"))
+            Nav.NavigateTo("/", true);
+    }
+}
+
+
+<div class="menu-hero">
+    <div class="hero-image">
+        <img src="images/BLOG-COOP-2.jpg" alt="Il nostro menù" />
+    </div>
+    <div class="hero-text">
+        <h1>MENU</h1>
+        <p>
+            Lasciatevi trasportare in un viaggio gastronomico unico, dove ogni
+            creazione riflette l’incontro tra tradizione e innovazione, ispirato
+            dai luoghi più affascinanti del globo. Venite a scoprire il nostro
+            angolo di mondo: la passione per il viaggio si unisce all’amore per
+            il cibo, creando un’esperienza culinaria indimenticabile.
+        </p>
+        <a href="javascript:void(0);" class="discover-link" @onclick="ScrollToMiddle">— SCOPRI IL MENU</a>
+    </div>
+</div>
+
+<div class="accordion" id="menu">
+    <!-- Sezione Antipasti con id per l’anchor -->
+    <div class="accordion-section" id="antipasti">
+        <button class="accordion-toggle" @onclick="() => ToggleSection(MenuSections[0])">
+            @(MenuSections[0].IsOpen ? "–" : "+") @MenuSections[0].Title
+        </button>
+        @if (MenuSections[0].IsOpen)
+        {
+            <ul class="accordion-content">
+                @foreach (var item in MenuSections[0].Items)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        }
+    </div>
+
+    <!-- Le altre sezioni -->
+    @for (int i = 1; i < MenuSections.Count; i++)
+    {
+        var sec = MenuSections[i];
+        <div class="accordion-section">
+            <button class="accordion-toggle" @onclick="() => ToggleSection(sec)">
+                @(sec.IsOpen ? "–" : "+") @sec.Title
+            </button>
+            @if (sec.IsOpen)
+            {
+                <ul class="accordion-content">
+                    @foreach (var item in sec.Items)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+        </div>
+    }
+</div>
+<div class="menuHomefine2">
+</div>
+
+<footer>
+    <h2> SCOPRI LE NOSTRE PROPOSTE!</h2>
+
+    <div class="footer-container">
+        <div class="footer-box">
+            <h3>link utili</h3>
+            <NavLink href="menu">Menu</NavLink><br />
+            <a href="login">Prenota un Tavolo</a><br />
+            <a href="le-mie-prenotazioni">Le Tue Prenotazioni</a><br />
+        </div>
+        <div class="footer-box">
+            <h3>Contatti</h3>
+            <p>Telefono: +39 075 573 5031</p>
+            <p>Cellulare: +39 335 1534567</p>
+            <p>Email: ristorante@ristorantesole.com</p>
+        </div>
+        <div class="footer-box">
+            <h3>Orari</h3>
+            <p>Martedì - Domenica 12.30 - 14.30; 19.30 - 22.30</p>
+            <p>Lunedì: Chiuso</p>
+        </div>
+        <div class="footer-box">
+            <h3>Dove Siamo</h3>
+            <p> Via della Rupe, 1 - 06121, Perugia (PG)</p>
+            <p> Centro Storico di Perugia</p>
+            <p>06132 Perugia (PG) </p>
+        </div>
+    </div>
+</footer>
+
+@code {
+    class MenuSection
+    {
+        public string Title { get; set; } = string.Empty;
+        public List<string> Items { get; set; } = new();
+        public bool IsOpen { get; set; }
+    }
+
+    List<MenuSection> MenuSections = new()
+    {
+        new MenuSection
+        {
+            Title = "Antipasti",
+            Items = new()
+            {
+                "Tagliere di salumi e formaggi con confetture e torta al testo",
+                "Carpaccio d’oca al tartufo e grana",
+                "Uovo a bassa temperatura su vellutata di parmigiano e tartufo",
+                "Gazpacho",
+                "Flan di carciofi su vellutata di pecorino",
+                "Cuore di burrata su vellutata di datterini e basilico croccante",
+                "Composta di avocado, mango e salmone",
+                "Ciuffetti di calamari fritti",
+                "Acciughe del Cantabrico con stracciatella",
+                "Tagliere di mare (Pesce spada, tonno e polpo)",
+                "Zuppa di polpo con crostone",
+                "Zuppetta di mazzancolle al curry giallo e riduzione di cocco"
+            }
+        },
+        new MenuSection
+        {
+            Title = "Primi Piatti",
+            Items = new()
+            {
+                "Strascinati al Sagrantino con guanciale e porcini",
+                "Risotto alle pere e gorgonzola",
+                "Strangozzi al tartufo nero di Norcia",
+                "Gnocchetti al ragù di cinghiale",
+                "Tortelloni al ripieno di spigola su bisque di crostacei",
+                "Trottole alla crema di scampi",
+                "Risotto alla pescatora",
+                "Spaghetti Mancini alle vongole"
+            }
+        },
+        new MenuSection
+        {
+            Title = "Secondi Piatti",
+            Items = new()
+            {
+                "Tagliata di manzo alla griglia",
+                "Petto di pollo al curry con riso al lime",
+                "Agnello a scottadito",
+                "Cinghiale alle mele con cipolle al tegame",
+                "Tartare di manzo (200 gr)",
+                "Polpo alla griglia con purè di patate",
+                "Frittura dell’Adriatico",
+                "Tartare di spigola alle mele e mandorle",
+                "Baccalà alla perugina 2.0"
+            }
+        },
+        new MenuSection
+        {
+            Title = "Contorni",
+            Items = new()
+            {
+                "Patate arrosto",
+                "Bietola e cicoria in padella con peperoncino",
+                "Patate fritte",
+                "Insalata mista",
+                "Parmigiana di melanzane scomposta",
+                "Grigliata mista di verdure",
+                "Insalatona vegetariana",
+                "Lattuga, pomodoro, sedano, noci, mais, carote, Parmigiano Reggiano",
+                "Insalatona del Sole: rucola, ananas, scaglie di mandorle, ricotta"
+            }
+        },
+        new MenuSection
+        {
+            Title = "Dolci",
+            Items = new()
+            {
+                "Tiramisù",
+                "Semifreddo al caramello croccante e amaretto",
+                "Tortino al cioccolato con gelato alla vaniglia",
+                "Pera al vino rosso con fondente al cioccolato e crema di mascarpone",
+                "Cheesecake scomposto (caramello salato / cioccolato / frutto della passione)",
+                "Selezione di mochi",
+                "Tartufo bianco",
+                "Tartufo nero",
+                "Sorbetto al limone",
+                "Tozzetti al porto"
+            }
+        },
+                new MenuSection
+        {
+            Title = "Vini",
+            Items = new()
+            {
+                // 5 vini umbri
+                "Rosso di Montefalco DOC",
+                "Sagrantino di Montefalco DOCG",
+                "Grechetto IGT Umbria",
+                "Trebbiano Spoletino DOC",
+                "Orvieto Classico Superiore DOC",
+                // 5 vini di alta qualità non umbri
+                "Barolo DOCG",
+                "Brunello di Montalcino DOCG",
+                "Chianti Classico DOCG",
+                "Champagne Brut",
+                "Riesling Mosel Kabinett"
+            }
+        }
+    };
+
+
+
+    void ToggleSection(MenuSection menuSection)
+    {
+        menuSection.IsOpen = !menuSection.IsOpen;
+    }
+
+    async Task ScrollToMiddle()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToMiddle");
+    }
+}

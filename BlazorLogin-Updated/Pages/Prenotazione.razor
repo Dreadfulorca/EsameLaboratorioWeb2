@@ -1,0 +1,237 @@
+﻿@page "/prenotazione"
+@attribute [Authorize(Roles = "User")]
+
+@using System
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using System.Linq
+@using BlazorServerAuthenticationAndAuthorization.Models
+@using BlazorServerAuthenticationAndAuthorization.Services
+
+@inject PrenotazioneService PrenoService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Prenotazione Tavolo</h3>
+
+@if (!string.IsNullOrEmpty(messaggioErrore))
+{
+    <div class="alert alert-danger">@messaggioErrore</div>
+}
+
+<EditForm Model="@prenotazioneModel" OnValidSubmit="InviaPrenotazione">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Nome e Cognome</label>
+        <InputText class="form-control" @bind-Value="prenotazioneModel.NomeCompleto" />
+        <ValidationMessage For="@(() => prenotazioneModel.NomeCompleto)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Numero di cellulare</label>
+        <InputText class="form-control" @bind-Value="prenotazioneModel.Cellulare" />
+        <ValidationMessage For="@(() => prenotazioneModel.Cellulare)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Data prenotazione</label>
+        <InputDate class="form-control"
+                   @bind-Value="SelectedDate"
+                   min="@TodayString" />
+        <ValidationMessage For="@(() => prenotazioneModel.Data)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Ora prenotazione</label>
+        <div class="d-flex">
+            <InputSelect class="form-control me-2" @bind-Value="selectedHour">
+                @foreach (var h in HoursOptions)
+                {
+                    <option value="@h">@h.ToString("D2")</option>
+                }
+            </InputSelect>
+            <InputSelect class="form-control" @bind-Value="selectedMinute">
+                @foreach (var m in MinuteOptions)
+                {
+                    <option value="@m">@m.ToString("D2")</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Numero di persone</label>
+        <InputNumber class="form-control" @bind-Value="prenotazioneModel.NumeroPersone" />
+        <ValidationMessage For="@(() => prenotazioneModel.NumeroPersone)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@staSalvando">
+        @if (staSalvando)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span> Salvataggio...</span>
+        }
+        else
+        {
+            <span>Invia Prenotazione</span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    private PrenotazioneModel prenotazioneModel = new();
+    private bool staSalvando = false;
+    private string messaggioErrore = string.Empty;
+
+    // wrapper per intercettare il bind della data
+    private DateTime SelectedDate
+    {
+        get => prenotazioneModel.Data;
+        set
+        {
+            prenotazioneModel.Data = value;
+            NormalizeSelectedTime();
+        }
+    }
+
+    private int selectedHour;
+    private int selectedMinute;
+
+    // finestre orarie consentite: pranzo e cena
+    private static readonly int[] WindowHours = { 12, 13, 14, 19, 20, 21, 22, 23 };
+    // minuti in step di quarto d'ora
+    private static readonly int[] AllMinutes = { 0, 15, 30, 45 };
+
+    private string TodayString =>
+        DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    // ore disponibili (con filtro “oggi” vs “futuro”)
+    private IEnumerable<int> HoursOptions =>
+        prenotazioneModel.Data.Date != DateTime.Today
+            ? WindowHours
+            : WindowHours.Where(h =>
+                h > DateTime.Now.Hour ||
+                (h == DateTime.Now.Hour && MinuteOptions.Any())
+              );
+
+    // minuti disponibili:
+    // - se ora == 23 → solo 00
+    // - else se “oggi” e ora == ora corrente → solo minuti >= adesso
+    // - altrimenti tutti i passi di 15'
+    private IEnumerable<int> MinuteOptions
+    {
+        get
+        {
+            if (selectedHour == 23)
+            {
+                // ultimo turno: solo “:00”
+                return new[] { 0 };
+            }
+            if (prenotazioneModel.Data.Date == DateTime.Today
+                && selectedHour == DateTime.Now.Hour)
+            {
+                var nowTs = DateTime.Now.TimeOfDay;
+                return AllMinutes.Where(m =>
+                    new TimeSpan(selectedHour, m, 0) >= nowTs
+                );
+            }
+            return AllMinutes;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // preimposta data a oggi e orario al prossimo quarto d'ora
+        SelectedDate = DateTime.Today;
+        var now = DateTime.Now;
+        int nextQuarter = ((now.Minute + 14) / 15) * 15;
+        if (nextQuarter == 60)
+        {
+            selectedHour = (now.Hour + 1) % 24;
+            selectedMinute = 0;
+        }
+        else
+        {
+            selectedHour = now.Hour;
+            selectedMinute = nextQuarter;
+        }
+        NormalizeSelectedTime();
+    }
+
+    private void NormalizeSelectedTime()
+    {
+        // se l'ora non è più valida, resetta all primo disponibile
+        var hrs = HoursOptions.ToList();
+        if (!hrs.Contains(selectedHour))
+            selectedHour = hrs.FirstOrDefault();
+        // idem per i minuti
+        var mins = MinuteOptions.ToList();
+        if (!mins.Contains(selectedMinute))
+            selectedMinute = mins.FirstOrDefault();
+    }
+
+    private async Task InviaPrenotazione()
+    {
+        staSalvando = true;
+        messaggioErrore = string.Empty;
+
+        var ts = new TimeSpan(selectedHour, selectedMinute, 0);
+
+        // blocca orari già passati per oggi
+        if (SelectedDate.Date == DateTime.Today && ts < DateTime.Now.TimeOfDay)
+        {
+            messaggioErrore = "Non puoi prenotare un orario già trascorso.";
+            staSalvando = false;
+            return;
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            messaggioErrore = "Utente non autenticato. Effettua il login.";
+            staSalvando = false;
+            return;
+        }
+
+        var pren = new BlazorServerAuthenticationAndAuthorization.Models.Prenotazione
+            {
+                NomeCompleto = prenotazioneModel.NomeCompleto,
+                Cellulare = prenotazioneModel.Cellulare,
+                Data = prenotazioneModel.Data,
+                Ora = ts,
+                NumeroPersone = prenotazioneModel.NumeroPersone,
+                Username = user.Identity.Name
+            };
+
+        bool successo = await PrenoService.CreaPrenotazioneAsync(pren);
+        if (!successo)
+        {
+            messaggioErrore = "Mi dispiace, non ci sono abbastanza posti liberi in questo orario.";
+            staSalvando = false;
+            return;
+        }
+
+        NavigationManager.NavigateTo("/le-mie-prenotazioni?success=true");
+    }
+
+    public class PrenotazioneModel
+    {
+        [Required(ErrorMessage = "Il nome e cognome sono obbligatori.")]
+        public string NomeCompleto { get; set; }
+
+        [Required(ErrorMessage = "Il numero di cellulare è obbligatorio.")]
+        [Phone(ErrorMessage = "Inserisci un numero di cellulare valido.")]
+        public string Cellulare { get; set; }
+
+        [Required(ErrorMessage = "La data è obbligatoria.")]
+        public DateTime Data { get; set; }
+
+        [Required]
+        [Range(1, 20, ErrorMessage = "Il numero di persone deve essere tra 1 e 20.")]
+        public int NumeroPersone { get; set; }
+    }
+}

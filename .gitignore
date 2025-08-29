@@ -1,0 +1,71 @@
+
+# ===== OS files =====
+.DS_Store
+Thumbs.db
+
+# ===== IDEs =====
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ===== .NET / Visual Studio build output =====
+bin/
+obj/
+[Bb]uild/
+[Bb]uilds/
+[Bb]inaries/
+[Bb]enchmarkDotNet.Artifacts/
+
+# MSBuild logs
+msbuild.binlog
+
+# Test + coverage
+TestResults/
+*.coverage
+*.coveragexml
+*.cov
+*.trx
+
+# Publish artifacts
+**/Properties/PublishProfiles/*.pubxml
+**/*.pubxml.user
+**/*.publishsettings
+**/*.publishproj
+
+# Packages
+*.nupkg
+packages/
+*.snupkg
+
+# NuGet v3 cache
+~/.nuget/packages/
+
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# ===== ASP.NET/Blazor specifics =====
+# Local configuration (keep appsettings.json; ignore per-developer variants)
+appsettings.*.local.json
+appsettings.*.Local.json
+
+# SQLite / local dev databases
+*.db
+*.db-shm
+*.db-wal
+
+# Entity Framework: keep migrations!
+!Migrations/**
+# If you scaffold a SQLite DB into wwwroot for demos, ignore it:
+wwwroot/*.db
+
+# Node tooling (if ever used from VS)
+node_modules/
+
+# Logs
+*.log
+logs/

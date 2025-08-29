@@ -1,0 +1,141 @@
+﻿@page "/le-mie-prenotazioni"
+@attribute [Authorize(Roles = "User")]
+
+@using Microsoft.AspNetCore.WebUtilities
+@using BlazorServerAuthenticationAndAuthorization.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using BlazorServerAuthenticationAndAuthorization.Authentication
+
+@inject AuthDbContext Context
+@inject NavigationManager NavigationManager
+
+<h3>Le mie prenotazioni</h3>
+
+@if (showSuccessAlert)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        Prenotazione eseguita con successo!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+    </div>
+}
+
+@if (prenotazioni == null)
+{
+    <p><em>Caricamento in corso…</em></p>
+}
+else if (!prenotazioni.Any())
+{
+    <p>Non hai ancora prenotazioni.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome e Cognome</th>   <!-- nuova colonna -->
+                <th>Data</th>
+                <th>Ora</th>
+                <th># Persone</th>
+                <th>Cellulare</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in prenotazioni)
+            {
+                <tr>
+                    <td>@p.NomeCompleto</td>       <!-- visualizzo il nome -->
+                    <td>@p.Data.ToShortDateString()</td>
+                    <td>@p.Ora.ToString(@"hh\:mm")</td>
+                    <td>@p.NumeroPersone</td>
+                    <td>@p.Cellulare</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => DeletePrenotazione(p.Id)">
+                            Elimina
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<BlazorServerAuthenticationAndAuthorization.Models.Prenotazione> prenotazioni;
+    private string userName;
+    private bool showSuccessAlert;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1) Leggo il flag success
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var qs = QueryHelpers.ParseQuery(uri.Query);
+        if (qs.TryGetValue("success", out var val) && val == "true")
+        {
+            showSuccessAlert = true;
+            // opzionale: ripulisci la query string
+            // NavigationManager.NavigateTo("/le-mie-prenotazioni", true);
+        }
+
+        // 2) Carico le prenotazioni dell'utente
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userName = user.Identity.Name;
+            prenotazioni = await Context.Prenotazioni
+                                        .Where(p => p.Username == userName)
+                                        .ToListAsync();
+        }
+    }
+
+    private async Task DeletePrenotazione(int id)
+    {
+        var p = await Context.Prenotazioni.FindAsync(id);
+        if (p != null && p.Username == userName)
+        {
+            Context.Prenotazioni.Remove(p);
+            await Context.SaveChangesAsync();
+            prenotazioni.Remove(p);
+            StateHasChanged();
+        }
+    }
+}
+
+<div class="menuHomefine2">
+</div>
+
+<footer>
+    <h2> SCOPRI LE NOSTRE PROPOSTE!</h2>
+
+    <div class="footer-container">
+        <div class="footer-box">
+            <h3>link utili</h3>
+            <NavLink href="menu">Menu</NavLink><br />
+            <a href="login">Prenota un Tavolo</a><br />
+            <a href="le-mie-prenotazioni">Le Tue Prenotazioni</a><br />
+        </div>
+        <div class="footer-box">
+            <h3>Contatti</h3>
+            <p>Telefono: +39 075 573 5031</p>
+            <p>Cellulare: +39 335 1534567</p>
+            <p>Email: ristorante@ristorantesole.com</p>
+        </div>
+        <div class="footer-box">
+            <h3>Orari</h3>
+            <p>Martedì - Domenica 12.30 - 14.30; 19.30 - 22.30</p>
+            <p>Lunedì: Chiuso</p>
+        </div>
+        <div class="footer-box">
+            <h3>Dove Siamo</h3>
+            <p> Via della Rupe, 1 - 06121, Perugia (PG)</p>
+            <p> Centro Storico di Perugia</p>
+            <p>06132 Perugia (PG) </p>
+        </div>
+    </div>
+</footer>

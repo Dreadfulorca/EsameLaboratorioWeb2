@@ -1,0 +1,84 @@
+﻿@page "/lista-prenotazioni"
+@attribute [Authorize(Roles = "Administrator")]
+
+@using System.Linq
+@using BlazorServerAuthenticationAndAuthorization.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using BlazorServerAuthenticationAndAuthorization.Authentication
+
+@inject AuthDbContext Context
+@inject NavigationManager NavigationManager
+
+<h3>Lista Prenotazioni</h3>
+
+@if (prenotazioni == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else if (!prenotazioni.Any())
+{
+    <p>Non ci sono prenotazioni.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Utente</th>
+                <th>Nome e Cognome</th>
+                <th>Data</th>
+                <th>Ora</th>
+                <th>Pers.</th>
+                <th>Cellulare</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in prenotazioni)
+            {
+                <tr>
+                    <td>@p.Username</td>
+                    <td>@p.NomeCompleto</td>
+                    <td>@p.Data.ToShortDateString()</td>
+                    <td>@p.Ora.ToString("hh\\:mm")</td>
+                    <td>@p.NumeroPersone</td>
+                    <td>@p.Cellulare</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => DeletePrenotazione(p.Id)">
+                            Elimina
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<BlazorServerAuthenticationAndAuthorization.Models.Prenotazione> prenotazioni;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Prima ordino per Data sul database, poi in memoria ordino anche per Ora
+        var listByDate = await Context.Prenotazioni
+                                      .OrderBy(p => p.Data)
+                                      .ToListAsync();
+        prenotazioni = listByDate
+                        .OrderBy(p => p.Ora)
+                        .ToList();
+    }
+
+    private async Task DeletePrenotazione(int id)
+    {
+        var p = await Context.Prenotazioni.FindAsync(id);
+        if (p != null)
+        {
+            Context.Prenotazioni.Remove(p);
+            await Context.SaveChangesAsync();
+            prenotazioni.Remove(p);
+            StateHasChanged();
+        }
+    }
+}
